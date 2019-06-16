@@ -4,11 +4,11 @@
 
 ### Quickstart 
 ```bash
-docker run --name e2guardian -d --restart=always \
+docker run --name e2guardian-rpi -d --restart=always \
   --publish 8080:8080 \
   --volume /path/to/lists:/etc/e2guardian/lists \
   --link some-squid:proxy \
-  dockerapp/e2guardian
+  e2guardian-rpi
 ```
 SELinux:
 ```bash

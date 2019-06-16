@@ -1,15 +1,15 @@
-FROM debian:jessie
-MAINTAINER dockerapp
+FROM raspbian/stretch
+MAINTAINER Justin Schwartzbeck (justinmschw@gmail.com)
 
 RUN apt-get -q update &&\
     apt-get -qy --force-yes dist-upgrade &&\
     apt-get install -qy wget unzip automake g++ zlib1g-dev pkg-config libpcre3-dev make
 
-RUN cd /tmp && wget https://github.com/e2guardian/e2guardian/archive/master.zip && \
-	unzip master.zip 
+RUN cd /tmp && wget https://codeload.github.com/e2guardian/e2guardian/zip/v5.3 && \
+	unzip v5.3
 #RUN apt-get install -qy libpcre3-dev
 
-RUN cd /tmp/e2guardian-master && \
+RUN cd /tmp/e2guardian-5.3 && \
 	./autogen.sh && \
 	./configure --sysconfdir=/etc --localstatedir=/var --with-proxygroup=nogroup && \
 	make && \
