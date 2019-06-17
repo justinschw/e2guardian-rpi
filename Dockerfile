@@ -11,7 +11,7 @@ RUN cd /tmp && wget https://codeload.github.com/e2guardian/e2guardian/zip/v5.3 &
 
 RUN cd /tmp/e2guardian-5.3 && \
 	./autogen.sh && \
-	./configure --sysconfdir=/etc --localstatedir=/var --with-proxygroup=nogroup && \
+	./configure --sysconfdir=/etc --localstatedir=/var --with-proxygroup=nogroup --enable-icap && \
 	make && \
 	make install
 RUN	sed -i "s/language = 'ukenglish'/language = 'russian-1251'/g" /etc/e2guardian/e2guardian.conf && \
