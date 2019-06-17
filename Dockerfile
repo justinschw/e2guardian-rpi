@@ -1,29 +1,40 @@
 FROM raspbian/stretch
 MAINTAINER Justin Schwartzbeck (justinmschw@gmail.com)
 
-RUN apt-get -q update &&\
-    apt-get -qy --force-yes dist-upgrade &&\
-    apt-get install -qy wget unzip automake g++ zlib1g-dev pkg-config libpcre3-dev make
+ARG BUILD_DATE
+ENV VERSION 5.1
+ENV OS debian
 
-RUN cd /tmp && wget https://codeload.github.com/e2guardian/e2guardian/zip/v5.3 && \
-	unzip v5.3
-#RUN apt-get install -qy libpcre3-dev
+LABEL commit.e2guardian-rpi=$COMMIT build_date.e2guardian-rpi=$BUILD_DATE
+RUN apt update \
+&& apt install --no-install-recommends --no-install-suggests -y curl unzip base-files automake base-passwd \
+bash coreutils dash debianutils diffutils dpkg e2fsprogs findutils grep gzip hostname ncurses-base \
+libevent-pthreads-* libevent-dev ncurses-bin perl-base sed login sysvinit-utils tar bsdutils \
+mount util-linux libc6-dev libc-dev gcc g++ make dpkg-dev autotools-dev debhelper dh-autoreconf dpatch \
+libclamav-dev libpcre3-dev zlib1g-dev pkg-config libssl1.1 libssl-dev libevent-pthreads-2.0-5 libtommath1 \
+libevent-core-2.0-5
 
-RUN cd /tmp/e2guardian-5.3 && \
-	./autogen.sh && \
-	./configure --sysconfdir=/etc --localstatedir=/var --with-proxygroup=nogroup --enable-icap && \
-	make && \
-	make install
-RUN	sed -i "s/language = 'ukenglish'/language = 'russian-1251'/g" /etc/e2guardian/e2guardian.conf && \
-#	sed -i "s/#daemonuser = 'nobody'/daemonuser = 'nobody'/g" /etc/e2guardian/e2guardian.conf && \
-#	sed -i "s/#daemongroup = 'nobody'/daemongroup = 'nogroup'/g" /etc/e2guardian/e2guardian.conf && \
-	echo '#!/bin/bash' > /run.sh && \
-	echo 'sed -i "s/^proxyip =.*/proxyip = `grep proxy /etc/hosts | cut -f1`/g" /etc/e2guardian/e2guardian.conf' >> /run.sh && \
-	echo 'exec e2guardian -N' >> /run.sh && chmod +x /run.sh && \
-	chown nobody /var/log/e2guardian && \
-	rm -rf /tmp/* && rm -rf /var/lib/apt/lists/*
+RUN cd /tmp && curl -k https://codeload.github.com/e2guardian/e2guardian/zip/v$VERSION > e2.zip && unzip e2.zip
 
-VOLUME /etc/e2guardian/lists
-ENTRYPOINT ["/run.sh"]
+RUN cd /tmp/e2guardian-$VERSION && ./autogen.sh && ./configure  '--prefix=/usr' '--enable-clamd=yes' '--enable-icap=yes' '--with-proxyuser=e2guardian' '--with-proxygroup=e2guardian' \
+'--sysconfdir=/etc' '--localstatedir=/var' '--enable-icap=yes' '--enable-commandline=yes' '--enable-email=yes' \
+'--enable-ntlm=yes' '--mandir=${prefix}/share/man' '--infodir=${prefix}/share/info' \
+'--enable-pcre=yes' '--enable-sslmitm=yes'
+RUN cd /tmp/e2guardian-$VERSION && make \
+&& mkdir /etc/e2guardian && cp src/e2guardian /usr/sbin/ && mkdir /var/log/e2guardian \
+&& mkdir -p /usr/share/e2guardian/languages && cp -Rf data/languages /usr/share/e2guardian/ && cp data/*.gif /usr/share/e2guardian/ && cp data/*swf /usr/share/e2guardian/ \
+&& cp -Rf configs/* /etc/e2guardian/ \
+&& adduser --no-create-home --system e2guardian \
+&& addgroup --system e2guardian \
+&& chmod 750 -Rf /etc/e2guardian && chmod 750 -Rf /usr/share/e2guardian && chown -Rf e2guardian /etc/e2guardian /usr/share/e2guardian /var/log/e2guardian \
+&& find /etc/e2guardian -type f -name .in -delete \
+&& find /usr/share/e2guardian -type f -name .in -delete \
+# ROOT mode if needed ...
+# && sed -i "s/#daemonuser = 'e2guardian'/daemonuser = 'root'/g" /etc/e2guardian/e2guardian.conf \
+# && sed -i "s/#daemongroup = 'e2guardian'/daemongroup = 'root'/g" /etc/e2guardian/e2guardian.conf \
+&& sed -i "s/#dockermode = off/dockermode = on/g" /etc/e2guardian/e2guardian.conf \
+&& apt remove -y --allow-remove-essential --purge curl unzip sed libevent-dev libc6-dev libc-dev g++ make dpkg-dev autotools-dev debhelper dh-autoreconf dpatch libclamav-dev libpcre3-dev zlib1g-dev libssl-dev \
+&& rm -rf /var/lib/apt/lists/* && rm -Rf /tmp/*
 EXPOSE 8080
-
+EXPOSE 3128
+CMD /usr/sbin/e2guardian
