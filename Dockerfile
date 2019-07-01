@@ -14,7 +14,8 @@ mount util-linux libc6-dev libc-dev gcc g++ make dpkg-dev autotools-dev debhelpe
 libclamav-dev libpcre3-dev zlib1g-dev pkg-config libssl1.1 libssl-dev libevent-pthreads-2.0-5 libtommath1 \
 libevent-core-2.0-5
 
-RUN cd /tmp && curl -k https://codeload.github.com/e2guardian/e2guardian/zip/v$VERSION > e2.zip && unzip e2.zip
+RUN cd /tmp && wget https://codeload.github.com/e2guardian/e2guardian/zip/v$VERSION \
+&& unzip v$VERSION
 
 RUN cd /tmp/e2guardian-$VERSION && ./autogen.sh && ./configure  '--prefix=/usr' '--enable-clamd=yes' '--enable-icap=yes' '--with-proxyuser=e2guardian' '--with-proxygroup=e2guardian' \
 '--sysconfdir=/etc' '--localstatedir=/var' '--enable-icap=yes' '--enable-commandline=yes' '--enable-email=yes' \
@@ -36,5 +37,5 @@ RUN cd /tmp/e2guardian-$VERSION && make \
 && apt remove -y --allow-remove-essential --purge curl unzip sed libevent-dev libc6-dev libc-dev g++ make dpkg-dev autotools-dev debhelper dh-autoreconf dpatch libclamav-dev libpcre3-dev zlib1g-dev libssl-dev \
 && rm -rf /var/lib/apt/lists/* && rm -Rf /tmp/*
 EXPOSE 8080
-EXPOSE 3128
+EXPOSE 1344
 CMD /usr/sbin/e2guardian
