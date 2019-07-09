@@ -2,7 +2,7 @@ FROM raspbian/stretch
 MAINTAINER Justin Schwartzbeck (justinmschw@gmail.com)
 
 ARG BUILD_DATE
-ENV VERSION 5.1
+ENV VERSION 5.3
 ENV OS debian
 
 LABEL commit.e2guardian-rpi=$COMMIT build_date.e2guardian-rpi=$BUILD_DATE
