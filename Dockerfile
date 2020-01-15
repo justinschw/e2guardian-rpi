@@ -38,4 +38,4 @@ RUN cd /tmp/e2guardian-$VERSION && make \
 && rm -rf /var/lib/apt/lists/* && rm -Rf /tmp/*
 EXPOSE 8080
 EXPOSE 1344
-CMD /usr/sbin/e2guardian
+CMD ulimit -s unlimited && /usr/sbin/e2guardian
